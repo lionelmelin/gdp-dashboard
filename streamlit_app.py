@@ -106,6 +106,57 @@ gdp_df = get_gdp_data()
 
 # Set the title that appears at the top of the page.
 '''
+# :earth_africa: Climate Models :thermometer:
+
+Flexible tool, allowing input of Carbon emission trajectory, to be translated in Temperature profiles for CMIP6 models. 
+'''
+st.header('Emissions', divider='gray')
+
+st.header('Temperatures', divider='gray')
+
+list_models = [
+"CMIP6-MMMean",
+"	ACCESS-ESM1-5	"	,
+"	AWI-CM-1-1-MR	"	,
+"	BCC-CSM2-MR	"	,
+"	BCC-ESM1	"	,
+"	CAMS-CSM1-0	"	,
+"	CMCC-CM2-SR5	"	,
+"	CNRM-CM6-1	"	,
+"	CNRM-CM6-1-HR	"	,
+"	CNRM-ESM2-1	"	,
+"	FGOALS-g3	"	,
+"	GISS-E2-1-G	"	,
+"	GISS-E2-1-H	"	,
+"	GISS-E2-2-G	"	,
+"	MIROC6	"	,
+"	MIROC-ES2L	"	,
+"	MPI-ESM1-2-HR	"	,
+"	MPI-ESM1-2-LR	"	,
+"	MRI-ESM2-0	"	,
+"	NorCPM1	"	,
+"	SAM0-UNICON	"
+]
+container = st.container()
+all = st.checkbox("Select all CMIP6 models")
+ 
+if all:
+    selected_options = container.multiselect("Select one or more models:",
+         list_models,list_models)
+else:
+    selected_options =  container.multiselect("Select one or more models:",
+        list_models)
+
+
+# Add some spacing
+''
+''
+
+# -----------------------------------------------------------------------------
+# Draw the actual page
+
+# Set the title that appears at the top of the page.
+'''
 # :earth_americas: GDP dashboard
 
 Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
