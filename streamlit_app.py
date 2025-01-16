@@ -22,8 +22,50 @@ def get_gdp_data():
     """
 
     # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+    DATA_FILENAME_GDP = Path(__file__).parent/'data/gdp_data.csv'
+    raw_gdp_df = pd.read_csv(DATA_FILENAME_GDP)
+
+    ### Read in emissions data
+    DATA_FILENAME_EMISSIONS = Path(__file__).parent/'data/RCPemissions.xlsx'
+    Emission = pd.read_excel(DATA_FILENAME_EMISSIONS, sheet_name = 'Emission')
+    # Emission = pd.read_excel(r"Data\RCPemissions.xlsx",
+    #                   sheet_name = 'Emission')
+    
+    #### Import Emulator
+    from EmulatorCore import Emulator
+
+    ### choose one emission path
+    emission = Emission['SSP5-34-OS']
+
+    ### Input emissions data to the emulator
+    test_Model = Emulator(Carbon_emission=emission)
+
+    ### Default model prediction
+    fig=test_Model.Plot_Temp()
+
+    # Plot!
+    st.plotly_chart(fig, use_container_width=True)
+
+    ### Add a new model
+    test_Model.update_model('DICE2016')
+    test_Model.update_model('MMM_CMIP5')
+    test_Model.update_model('HadGEM2-ES')
+    test_Model.update_model('INM-CM4')
+
+        ### Default model prediction
+    fig=test_Model.Plot_Temp()
+
+    # Plot!
+    st.plotly_chart(fig, use_container_width=True)
+
+    #### CMIP6 
+    tatm0 = test_Model.CMIP6_prediction()
+
+    ### Default model prediction
+    fig=test_Model.Plot_Temp()
+
+    # Plot!
+    st.plotly_chart(fig, use_container_width=True)
 
     MIN_YEAR = 1960
     MAX_YEAR = 2022
@@ -68,7 +110,7 @@ gdp_df = get_gdp_data()
 
 Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
 notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
+But it's otherwise a great source of data.
 '''
 
 # Add some spacing
