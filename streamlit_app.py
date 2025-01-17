@@ -9,7 +9,14 @@ from EmulatorCore import Emulator
 st.set_page_config(
     page_title='Climate Models',
     page_icon=':earth_africa:', # This is an emoji shortcode. Could be a URL too.
+    layout="wide", # Use the full page instead of a narrow central column
+    menu_items={
+        # 'Get Help': 'https://www.extremelycoolapp.com/help',
+        # 'Report a bug': "https://www.extremelycoolapp.com/bug",
+        # 'About': "# This is a header. This is an *extremely* cool app!"
+    }     
 )
+
 
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
@@ -128,102 +135,131 @@ st.plotly_chart(fig, use_container_width=True)
 
 Flexible tool, allowing input of Carbon emission trajectory, to be translated in Temperature profiles for CMIP6 models. 
 '''
-st.header('Emissions', divider='gray')
+col1, col2 = st.columns(2)
 
-with st.popover("Redefine Parameters"):
-    year_range = st.slider("Select a range of years", 2020, 2100, (2020, 2100))
-    # st.write("Year-range:", year_range)
+with col1:
 
-    year_peak = st.slider("Select peak year", 2020, 2100, 2050)
-    # st.write("Peak emissions of xx recorded in", year_peak, ".")
+    st.header('Emissions', divider='gray')
 
-    emission_start = st.number_input(
-        "Start Carbon emissions", value=1, placeholder="Type a number..."
+    with st.popover("Define Parameters"):
+        year_range = st.slider("Select a range of years", 2020, 2100, (2020, 2100))
+        # st.write("Year-range:", year_range)
+
+        year_peak = st.slider("Select peak year", 2020, 2100, 2050)
+        # st.write("Peak emissions of xx recorded in", year_peak, ".")
+
+        emission_start = st.number_input(
+            "Start Carbon emissions", value=1, placeholder="Type a number..."
+        )
+        emission_peak = st.number_input(
+            "Peak Carbon emissions", value=4, placeholder="Type a number..."
+        )
+        emission_end = st.number_input(
+            "End Carbon emissions", value=2, placeholder="Type a number..."
+        )
+
+    st.write("Start emission of ", emission_start, " recorded in ", year_range[0],
+            "; Peak emissions of ",emission_peak, " recorded in ", year_peak,
+            "; End emissions of ",emission_end, " recorded in ", year_range[1])
+
+    # Create emission path, should have years (str) and emission values as columns
+    emission = Emission[['Year','SSP5-34-OS']]
+
+    # Plot the Emission Path
+    st.line_chart(
+        emission,
+        x='Year',
+        y='SSP5-34-OS'
     )
-    emission_peak = st.number_input(
-        "Peak Carbon emissions", value=4, placeholder="Type a number..."
-    )
-    emission_end = st.number_input(
-        "End Carbon emissions", value=2, placeholder="Type a number..."
-    )
 
-st.write("Start emission of ", emission_start, " recorded in ", year_range[0],
-         "; Peak emissions of ",emission_peak, " recorded in ", year_peak,
-         "; End emissions of ",emission_end, " recorded in ", year_range[1])
+    with st.expander("Define Parameters"):
+        year_range = st.slider("Select a range of years bis", 2020, 2100, (2020, 2100))
+        # st.write("Year-range:", year_range)
 
-# Create emission path, should have years (str) and emission values as columns
-emission = Emission[['Year','SSP5-34-OS']]
+        year_peak = st.slider("Select peak year bis", 2020, 2100, 2050)
+        # st.write("Peak emissions of xx recorded in", year_peak, ".")
 
-# Plot the Emission Path
-st.line_chart(
-    emission,
-    x='Year',
-    y='SSP5-34-OS'
-)
+        emission_start = st.number_input(
+            "Start Carbon emissions bis", value=1, placeholder="Type a number..."
+        )
+        emission_peak = st.number_input(
+            "Peak Carbon emissions bis", value=4, placeholder="Type a number..."
+        )
+        emission_end = st.number_input(
+            "End Carbon emissions bis", value=2, placeholder="Type a number..."
+        )
 
-st.header('Temperatures', divider='gray')
+    uploaded_file = st.file_uploader("Or if you prefer to use your own file")
 
-list_CMIP6_models = [
-"CMIP6-MMMean",
-"ACCESS-ESM1-5",
-"AWI-CM-1-1-MR",
-"BCC-CSM2-MR",
-"BCC-ESM1",
-"CAMS-CSM1-0",
-"CMCC-CM2-SR5",
-"CNRM-CM6-1",
-"CNRM-CM6-1-HR",
-"CNRM-ESM2-1",
-"FGOALS-g3",
-"GISS-E2-1-G",
-"GISS-E2-1-H",
-"GISS-E2-2-G",
-"MIROC6",
-"MIROC-ES2L",
-"MPI-ESM1-2-HR",
-"MPI-ESM1-2-LR",
-"MRI-ESM2-0",
-"NorCPM1",
-"SAM0-UNICON"
-]
 
-# # Compute the Emission paths for all possible models (CMIP6, maybe CMIP5 also) into a dataframe
-# raw_tatm_df = 
-# # Present the Dataframe with columns: Year, Model, Temperature
-# tatm_df = raw_tatm_df.melt(
-#     ['Model Code'],
-#     [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-#     'Year',
-#     'Temperature',
-# )
-# # Convert years from string to integers
-# tatm_df['Year'] = pd.to_numeric(tatm_df['Year'])
+with col2:
 
-# Ask the user to select the models they want to display
-container = st.container()
-all = st.checkbox("Select all CMIP6 models")
+    st.header('Temperatures', divider='gray')
 
-if all:
-    selected_models = container.pills("Select one or more models:",
-         selection_mode="multi", options=list_CMIP6_models, default=list_CMIP6_models)
-else:
-    selected_models =  container.pills("Select one or more models:",
-        selection_mode="multi", options=list_CMIP6_models)
+    list_CMIP6_models = [
+    "CMIP6-MMMean",
+    "ACCESS-ESM1-5",
+    "AWI-CM-1-1-MR",
+    "BCC-CSM2-MR",
+    "BCC-ESM1",
+    "CAMS-CSM1-0",
+    "CMCC-CM2-SR5",
+    "CNRM-CM6-1",
+    "CNRM-CM6-1-HR",
+    "CNRM-ESM2-1",
+    "FGOALS-g3",
+    "GISS-E2-1-G",
+    "GISS-E2-1-H",
+    "GISS-E2-2-G",
+    "MIROC6",
+    "MIROC-ES2L",
+    "MPI-ESM1-2-HR",
+    "MPI-ESM1-2-LR",
+    "MRI-ESM2-0",
+    "NorCPM1",
+    "SAM0-UNICON"
+    ]
 
-# # Filter the dataframe according the the users' choice of models
-# filtered_tatm_df = tatm_df[
-#     (tatm_df['Model'].isin(selected_models))
-#     # & (gdp_df['Year'] <= to_year)
-#     # & (from_year <= gdp_df['Year'])
-# ]
+    # # Compute the Emission paths for all possible models (CMIP6, maybe CMIP5 also) into a dataframe
+    # raw_tatm_df = 
+    # # Present the Dataframe with columns: Year, Model, Temperature
+    # tatm_df = raw_tatm_df.melt(
+    #     ['Model Code'],
+    #     [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
+    #     'Year',
+    #     'Temperature',
+    # )
+    # # Convert years from string to integers
+    # tatm_df['Year'] = pd.to_numeric(tatm_df['Year'])
 
-# # Plot the Temperatures
-# st.line_chart(
-#     filtered_tatm_df,
-#     x='Year',
-#     y='Temperature',
-#     color='Model',
-# )
+    # Ask the user to select the models they want to display
+
+    with st.popover("Choose models displayed"):
+        container = st.container()
+        all = st.checkbox("Select all CMIP6 models")
+
+        if all:
+            selected_models = container.pills("Select one or more models:",
+                selection_mode="multi", options=list_CMIP6_models, default=list_CMIP6_models)
+        else:
+            selected_models =  container.pills("Select one or more models:",
+                selection_mode="multi", options=list_CMIP6_models)
+
+    # # Filter the dataframe according the the users' choice of models
+    # filtered_tatm_df = tatm_df[
+    #     (tatm_df['Model'].isin(selected_models))
+    #     # & (gdp_df['Year'] <= to_year)
+    #     # & (from_year <= gdp_df['Year'])
+    # ]
+
+    # # Plot the Temperatures
+    # st.line_chart(
+    #     filtered_tatm_df,
+    #     x='Year',
+    #     y='Temperature',
+    #     color='Model',
+    # )
+
 # Add some spacing
 ''
 ''
