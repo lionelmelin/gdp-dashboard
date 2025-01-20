@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 #### Import Emulator
 from EmulatorCore import Emulator
+from UserEmission import Emission
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -72,7 +73,7 @@ gdp_df = get_gdp_data()
 def get_data():
     ### Read in emissions data
     DATA_FILENAME_EMISSIONS = Path(__file__).parent/'data/RCPemissions.xlsx'
-    Emission = pd.read_excel(DATA_FILENAME_EMISSIONS, sheet_name = 'Emission', dtype={'Year': str})
+    Emissions = pd.read_excel(DATA_FILENAME_EMISSIONS, sheet_name = 'Emission', dtype={'Year': str})
     # Emission = pd.read_excel(r"Data\RCPemissions.xlsx",
     #                   sheet_name = 'Emission')
 
@@ -88,42 +89,42 @@ def get_data():
     # #                       sheet_name = 'carbon')
     # Carbon.set_index('Model', inplace=True)
 
-    return Emission #, CMIP, Carbon
+    return Emissions #, CMIP, Carbon
 
-Emission = get_data()
+Emissions = get_data()
 
-### choose one emission path
-emission = Emission['SSP5-34-OS']
+# ### choose one emission path
+# emission = Emission['SSP5-34-OS']
 
-### Input emissions data to the emulator
-test_Model = Emulator(Carbon_emission=emission)
+# ### Input emissions data to the emulator
+# test_Model = Emulator(Carbon_emission=emission)
 
-### Default model prediction
-fig=test_Model.Plot_Temp()
+# ### Default model prediction
+# fig=test_Model.Plot_Temp()
 
-# Plot!
-st.plotly_chart(fig, use_container_width=True)
+# # Plot!
+# st.plotly_chart(fig, use_container_width=True)
 
-### Add a new model
-test_Model.update_model('DICE2016')
-test_Model.update_model('MMM_CMIP5')
-test_Model.update_model('HadGEM2-ES')
-test_Model.update_model('INM-CM4')
+# ### Add a new model
+# test_Model.update_model('DICE2016')
+# test_Model.update_model('MMM_CMIP5')
+# test_Model.update_model('HadGEM2-ES')
+# test_Model.update_model('INM-CM4')
 
-    ### Default model prediction
-fig=test_Model.Plot_Temp()
+#     ### Default model prediction
+# fig=test_Model.Plot_Temp()
 
-# Plot!
-st.plotly_chart(fig, use_container_width=True)
+# # Plot!
+# st.plotly_chart(fig, use_container_width=True)
 
-#### CMIP6 
-tatm0 = test_Model.CMIP6_prediction()
+# #### CMIP6 
+# tatm0 = test_Model.CMIP6_prediction()
 
-### Default model prediction
-fig=test_Model.Plot_Temp()
+# ### Default model prediction
+# fig=test_Model.Plot_Temp()
 
-# Plot!
-st.plotly_chart(fig, use_container_width=True)
+# # Plot!
+# st.plotly_chart(fig, use_container_width=True)
 
 
 # -----------------------------------------------------------------------------
@@ -131,7 +132,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 # Set the title that appears at the top of the page.
 '''
-# :earth_africa: Climate Models :thermometer:
+# :earth_africa: Climate Models
 
 Flexible tool, allowing input of Carbon emission trajectory, to be translated in Temperature profiles for CMIP6 models. 
 '''
@@ -145,26 +146,28 @@ with col1:
         # year_range = st.slider("Select a peak and end year", 2020, 2100, (2020, 2100))
         # # st.write("Year-range:", year_range)
 
-        year_peak = st.slider("Select peak year", 2020, 2100, 2050)
-        # st.write("Peak emissions of xx recorded in", year_peak, ".")
+        peak_year = st.slider("Select peak year", 2020, 2100, 2050)
 
-        # emission_start = st.number_input(
-        #     "Start Carbon emissions", value=1, placeholder="Type a number..."
-        # )
-        emission_peak = st.number_input(
-            "Peak Carbon emissions", value=4, placeholder="Type a number..."
+        halve_year = st.slider("Select year when emissions are halved (compared to 2020)", 2020, 2100, 2090)
+
+        peak_emission = st.number_input(
+            "Peak Carbon emissions (% of 2020 emissions)", value=130, placeholder="Type a number..."
         )
-        emission_end = st.number_input(
-            "End Carbon emissions", value=2, placeholder="Type a number..."
+        end_emission = st.number_input(
+            "End of century Carbon emissions (% of 2020 emissions)", value=50, placeholder="Type a number..."
         )
 # "Start emission of ", emission_start, " recorded in ", year_range[0],
 #             ";
-    st.write("Peak emissions of ", emission_peak, " recorded in ", year_peak,
-            "; End emissions of ", emission_end, " recorded in 2100")
+    # st.write("Peak emissions of ", emission_peak, " recorded in ", year_peak,
+    #         "; End emissions of ", emission_end, " recorded in 2100")
 
     # Create emission path, should have years (str) and emission values as columns
-    emission = Emission[['Year','SSP5-34-OS']]
-
+    # emission = Emissions[['Year','SSP5-34-OS']]
+    peak_emission = peak_emission/100
+    end_emission = end_emission/100
+    print(end_emission)
+    test_Emission = Emission(peak_emission=peak_emission, peak_year=peak_year, halve_year=halve_year, end_emission= end_emission)
+    emission = test_Emission.EmissionInterpolate()  
     # emission_plot = emission.copy()
     # emission_plot['Year'] = emission_plot['Year'].to_string()
     # emission_plot['Year'] = pd.to_numeric(emission_plot['Year'])
@@ -174,7 +177,8 @@ with col1:
     st.line_chart(
         emission,
         x='Year',
-        y='SSP5-34-OS'
+        y='Emission',
+        y_label='Carbon Emissions (Mt of C per year)',
     )
 
     # with st.expander("Define Parameters"):
@@ -287,97 +291,97 @@ with col2:
     #     color='Model',
     # )
 
-# Add some spacing
-''
-''
+# # Add some spacing
+# ''
+# ''
 
-# -----------------------------------------------------------------------------
-# Draw the actual page
+# # -----------------------------------------------------------------------------
+# # Draw the actual page
 
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
+# # Set the title that appears at the top of the page.
+# '''
+# # :earth_americas: GDP dashboard
 
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great source of data.
-'''
+# Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
+# notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
+# But it's otherwise a great source of data.
+# '''
 
-# Add some spacing
-''
-''
+# # Add some spacing
+# ''
+# ''
 
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
+# min_value = gdp_df['Year'].min()
+# max_value = gdp_df['Year'].max()
 
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
+# from_year, to_year = st.slider(
+#     'Which years are you interested in?',
+#     min_value=min_value,
+#     max_value=max_value,
+#     value=[min_value, max_value])
 
-countries = gdp_df['Country Code'].unique()
+# countries = gdp_df['Country Code'].unique()
 
-if not len(countries):
-    st.warning("Select at least one country")
+# if not len(countries):
+#     st.warning("Select at least one country")
 
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
+# selected_countries = st.multiselect(
+#     'Which countries would you like to view?',
+#     countries,
+#     ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
 
-''
-''
-''
+# ''
+# ''
+# ''
 
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
+# # Filter the data
+# filtered_gdp_df = gdp_df[
+#     (gdp_df['Country Code'].isin(selected_countries))
+#     & (gdp_df['Year'] <= to_year)
+#     & (from_year <= gdp_df['Year'])
+# ]
 
-st.header('GDP over time', divider='gray')
+# st.header('GDP over time', divider='gray')
 
-''
+# ''
 
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
+# st.line_chart(
+#     filtered_gdp_df,
+#     x='Year',
+#     y='GDP',
+#     color='Country Code',
+# )
 
-''
-''
+# ''
+# ''
 
 
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
+# first_year = gdp_df[gdp_df['Year'] == from_year]
+# last_year = gdp_df[gdp_df['Year'] == to_year]
 
-st.header(f'GDP in {to_year}', divider='gray')
+# st.header(f'GDP in {to_year}', divider='gray')
 
-''
+# ''
 
-cols = st.columns(4)
+# cols = st.columns(4)
 
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
+# for i, country in enumerate(selected_countries):
+#     col = cols[i % len(cols)]
 
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
+#     with col:
+#         first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
+#         last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
 
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
+#         if math.isnan(first_gdp):
+#             growth = 'n/a'
+#             delta_color = 'off'
+#         else:
+#             growth = f'{last_gdp / first_gdp:,.2f}x'
+#             delta_color = 'normal'
 
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+#         st.metric(
+#             label=f'{country} GDP',
+#             value=f'{last_gdp:,.0f}B',
+#             delta=growth,
+#             delta_color=delta_color
+#         )
