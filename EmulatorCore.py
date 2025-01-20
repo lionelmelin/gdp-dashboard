@@ -30,14 +30,21 @@ import os
 
 DATA_FILENAME_CMIP = Path(__file__).parent/'data/CMIPparas.xlsx'
 CMIP = pd.read_excel(DATA_FILENAME_CMIP, sheet_name = 'CMIP')
-# CMIP = pd.read_excel(r"Data\CMIPparas.xlsx",
-#                       sheet_name = 'CMIP')
+CMIP5 = pd.read_excel(DATA_FILENAME_CMIP, sheet_name = 'CMIP5')
+CMIP6 = pd.read_excel(DATA_FILENAME_CMIP, sheet_name = 'CMIP6')
+list_models_CMIP5 = CMIP5['Model'].tolist()
+list_models_CMIP6 = CMIP6['Model'].tolist()
+list_models_CMIP5.sort()
+list_models_CMIP5.remove('MMM_CMIP5')
+list_models_CMIP5.insert(0,'MMM_CMIP5')
+list_models_CMIP6.sort() #.remove('MMM_CMIP6').insert(0,'MMM_CMIP6')
+print(list_models_CMIP5)
+print(list_models_CMIP6)
 CMIP.set_index('Model', inplace=True)
+
 
 DATA_FILENAME_CARBON = Path(__file__).parent/'data/CMIPparas.xlsx'
 Carbon = pd.read_excel(DATA_FILENAME_CARBON, sheet_name = 'carbon')
-# Carbon =  pd.read_excel(r"Data\CMIPparas.xlsx",
-#                       sheet_name = 'carbon')
 Carbon.set_index('Model', inplace=True)
 
 
@@ -534,7 +541,24 @@ class Emulator:
         
     
     
-    
+    def Temp_CMIP(emission):
+        Temp = []
+        for model in CMIP.index.tolist():
+            temp_Model = Emulator(Carbon_emission=emission, Model_name=model)
+            tatm,_ = temp_Model.Run_sim()
+            Temp_data = {
+                'Model': model,
+                'Temperature': tatm}
+            Temp.append(Temp_data)
+        
+        new_row = {'Model':'Year', 'Temperature':np.arange(2020, 2102,1)}
+        Temp.append(new_row)
+        Temp_df = pd.DataFrame(Temp)
+        df = pd.DataFrame(Temp_df.Temperature.tolist(), index= Temp_df.Model).T
+
+        return df
+            
+
     
 
 
