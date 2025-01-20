@@ -24,7 +24,7 @@ class Emission():
         # Define the four points a, b, c, and d
         a = (self.start_year, self.start_emission)  # (x, y)
         b = (self.peak_year, self.peak_emission)
-        c = (self.halve_year,0.5*self.start_emission)
+        c = (self.halve_year, self.end_emission)#0.5*self.start_emission)
         d = (self.end_year, self.end_emission)
         
         # Determine the maximum y value among a, c, and d

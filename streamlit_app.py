@@ -134,7 +134,7 @@ Emissions = get_data()
 '''
 # :earth_africa: Climate Models
 
-Flexible tool, allowing input of Carbon emission trajectory, to be translated in Temperature profiles for CMIP6 models. 
+Flexible tool, allowing input of Carbon emission trajectory, and translating it into Temperature profiles according to CMIP models. 
 '''
 col1, col2 = st.columns([2, 3], gap="large")
 
@@ -143,12 +143,20 @@ with col1:
     st.header('Emission', divider='gray')
 
     container_graph_emissions = st.container()
+    # Initialization
+    if 'halve_year_default' not in st.session_state:
+        st.session_state['halve_year_default'] = 2090
 
     with st.expander("Define Parameters"):
         col11, col12 = st.columns(2, gap="large")
         with col11:
-            peak_year = st.slider("Select peak year", 2020, 2100, 2050)
-            halve_year = st.slider("Select year when emissions are halved (compared to 2020)", peak_year, 2100, 2090)
+            peak_year = st.slider("Select peak year", 2010, 2100, 2050)
+            if peak_year >= st.session_state.halve_year_default:
+                st.warning('Peak year should be before Stabilization year')
+            halve_year = st.slider("Select year when emissions are halved (compared to 2020)", peak_year, 2100, st.session_state.halve_year_default)
+            
+            st.session_state.halve_year_default = halve_year
+
         with col12:
             peak_emission = st.number_input(
                 "Peak Carbon emissions (% of 2020 emissions)", value=130, placeholder="Type a number..."
@@ -259,13 +267,16 @@ with col2:
     #     (tatm_df['Model'].isin(selected_models_CMIP6))
     # ]
     selected_models = selected_models_CMIP5 + selected_models_CMIP6
+    # if not len(selected_models):
+    #     container_graph_temperatures.warning("Select at least one model")
+    # else:
     # Plot the Temperatures
     container_graph_temperatures.line_chart(
         tatm_df,
         x='Year',
         y=selected_models,
         y_label='Temperature Anomaly (in Celsius)',
-        # color='Model',
+        #color='Model',
     )
 
 # # Add some spacing
@@ -310,12 +321,12 @@ with col2:
 # ''
 # ''
 # ''
-
+# print(gdp_df)
 # # Filter the data
 # filtered_gdp_df = gdp_df[
 #     (gdp_df['Country Code'].isin(selected_countries))
-#     & (gdp_df['Year'] <= to_year)
-#     & (from_year <= gdp_df['Year'])
+#     # & (gdp_df['Year'] <= to_year)
+#     # & (from_year <= gdp_df['Year'])
 # ]
 
 # st.header('GDP over time', divider='gray')
